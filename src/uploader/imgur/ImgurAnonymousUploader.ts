@@ -139,7 +139,8 @@ async function calculateFileOid(image: File): Promise<{ hash: string; size: numb
                 if (this.result instanceof ArrayBuffer) {
                     buffer = new Uint8Array(this.result);
                 } else if (typeof this.result ==='string') {
-                    buffer = new Uint8Array(this.result);
+                    const bufferData = Buffer.from(this.result, 'utf8');
+                    buffer = new Uint8Array(bufferData.buffer);
                 }
                 hash.update(buffer);
                 size += buffer.byteLength;
