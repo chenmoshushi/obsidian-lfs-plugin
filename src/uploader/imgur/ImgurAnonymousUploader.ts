@@ -67,7 +67,7 @@ export default class ImgurAnonymousUploader implements ImageUploader {
         'Content-Type': 'application/vnd.git-lfs+json',
     };
 
-    const initResponse = await request({
+    const initResponse = await requestUrl({
         url: `${this.clientId}/log_img/info/lfs/objects/batch`,
         method: 'POST',
         headers: headers,
@@ -97,7 +97,7 @@ export default class ImgurAnonymousUploader implements ImageUploader {
                 reader.readAsArrayBuffer(image);
             });
 
-            const uploadResponse = await request({
+            const uploadResponse = await requestUrl({
                 url: lfsUploadUrl,
                 method: 'PUT',
                 headers: {
