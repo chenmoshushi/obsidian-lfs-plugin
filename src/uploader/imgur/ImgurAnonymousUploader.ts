@@ -6,7 +6,7 @@ import { ImgurPostData } from '../../imgur/imgurResponseTypes'
 import prepareMultipartRequestPiece from '../../utils/obsidian-http-client'
 import ImageUploader from '../ImageUploader'
 import { resolve, basename, extname, dirname } from 'path'
-import fs from 'fs';
+import * as fs from 'fs';
 import { createHash } from 'crypto';
 import { Buffer } from 'buffer';
 const { promises: fsp } = fs
