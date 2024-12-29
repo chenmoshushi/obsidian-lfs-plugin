@@ -3,6 +3,7 @@ import {
   Editor,
   EditorPosition,
   MarkdownFileInfo,
+  parseLinktext,
   MarkdownView,
   Menu,
   Notice,
@@ -15,6 +16,7 @@ import { createImgurCanvasPasteHandler } from './Canvas'
 import UploadStrategy from './UploadStrategy'
 import DragEventCopy from './aux-event-classes/DragEventCopy'
 import PasteEventCopy from './aux-event-classes/PasteEventCopy'
+import DirectFileCopy from './aux-event-classes/DirectFileCopy'
 import AuthenticatedImgurClient from './imgur/AuthenticatedImgurClient'
 import ImgurSize from './imgur/resizing/ImgurSize'
 import editorCheckCallbackFor from './imgur/resizing/plugin-callback'
@@ -96,6 +98,7 @@ export default class ImgurPlugin extends Plugin {
     markdownView: MarkdownView,
   ) => {
     if (e instanceof PasteEventCopy) return
+    if (e instanceof DirectFileCopy) return
 
     if (!this.imgUploader) {
       ImgurPlugin.showUnconfiguredPluginNotice()
@@ -132,7 +135,7 @@ export default class ImgurPlugin extends Plugin {
 
     for (const file of files) {
       this.uploadFileAndEmbedImgurImage(file).catch(() => {
-        markdownView.currentMode.clipboardManager.handlePaste(new PasteEventCopy(e))
+          markdownView.currentMode.clipboardManager.handlePaste(new PasteEventCopy(e))
       })
     }
   }
@@ -187,7 +190,7 @@ export default class ImgurPlugin extends Plugin {
     const filesFailedToUpload: File[] = []
     for (const image of files) {
       const uploadPromise = this.uploadFileAndEmbedImgurImage(image).catch(() => {
-        filesFailedToUpload.push(image)
+          filesFailedToUpload.push(image)
       })
       promises.push(uploadPromise)
     }
@@ -219,6 +222,8 @@ export default class ImgurPlugin extends Plugin {
     const { image, editor, noteFile } = imageInEditor
     const { file: imageFile, start, end } = image
     const imageUrl = await this.uploadLocalImageFromEditor(editor, imageFile, start, end)
+    console.warn("upload ok imageUrl:", imageUrl)
+    console.warn("upload ok imageFile:", imageFile)
     this.proposeToReplaceOtherLocalLinksIfAny(imageFile, imageUrl, {
       path: noteFile.path,
       startPosition: start,
@@ -321,6 +326,7 @@ export default class ImgurPlugin extends Plugin {
     start: EditorPosition,
     end: EditorPosition,
   ) {
+    console.warn('uploadLocalImageFromEditor 1')
     const arrayBuffer = await this.app.vault.readBinary(file)
     const fileToUpload = new File([arrayBuffer], file.name)
     editor.replaceRange('\n', end, end)
@@ -445,6 +451,7 @@ export default class ImgurPlugin extends Plugin {
 
     let imgUrl: string
     try {
+      console.warn('imgUploaderField.upload', file)
       imgUrl = await this.imgUploaderField.upload(file, this.settings.albumToUpload)
     } catch (e) {
       if (e instanceof ApiError) {
@@ -458,7 +465,7 @@ export default class ImgurPlugin extends Plugin {
       }
       throw e
     }
-    this.embedMarkDownImage(pasteId, imgUrl)
+    this.embedMarkDownImage(pasteId, imgUrl, file)
     return imgUrl
   }
 
@@ -477,11 +484,30 @@ export default class ImgurPlugin extends Plugin {
     return `![Uploading file...${id}]()`
   }
 
-  private embedMarkDownImage(pasteId: string, imageUrl: string) {
+  private embedMarkDownImage(pasteId: string, imageUrl: string, file: File) {
     const progressText = ImgurPlugin.progressTextFor(pasteId)
-    const markDownImage = `![](${imageUrl})`
-
-    ImgurPlugin.replaceFirstOccurrence(this.getEditor(), progressText, markDownImage)
+    if (!imageUrl.startsWith('http')) {
+        console.warn("embedMarkDownImage--url", imageUrl)
+        const mdView = this.app.workspace.getActiveViewOfType(MarkdownView);
+        const lt = parseLinktext(imageUrl)
+        const attach_file = mdView.app.metadataCache.getFirstLinkpathDest(lt.path, mdView.file.path)
+        console.warn("embedMarkDownImage--lt", lt)
+        console.warn("embedMarkDownImage--attach_file", attach_file)
+        if (attach_file) {
+            const markDownImage = `![[${attach_file.name}]]`
+            ImgurPlugin.replaceFirstOccurrence(this.getEditor(), progressText, markDownImage)
+        } else {
+            const markDownImage = ``
+            ImgurPlugin.replaceFirstOccurrence(this.getEditor(), progressText, markDownImage)
+            const mdView = this.app.workspace.getActiveViewOfType(MarkdownView);
+            if (mdView) {
+                mdView.currentMode.clipboardManager.handlePaste(new DirectFileCopy([file]));
+            }
+        }
+    } else {
+        const markDownImage = `![](${imageUrl})`
+        ImgurPlugin.replaceFirstOccurrence(this.getEditor(), progressText, markDownImage)
+    }
   }
 
   private handleFailedUpload(pasteId: string, message: string) {

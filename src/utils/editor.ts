@@ -29,6 +29,7 @@ export const findLocalFileUnderCursor = (editor: Editor, ctx: MarkdownFileInfo) 
 
   if (!IMGUR_POTENTIALLY_SUPPORTED_FILES_EXTENSIONS.includes(file.extension)) return null
 
+  console.warn("file-->", file)
   return {
     file,
     start: localImageExpectedStart,
