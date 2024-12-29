@@ -461,7 +461,7 @@ export default class ImgurPlugin extends Plugin {
         )
       } else {
         console.error('Failed imgur request: ', e)
-        this.handleFailedUpload(pasteId, '⚠️Imgur upload failed, check dev console')
+        this.handleFailedUpload(pasteId, `⚠️Imgur upload failed, error: ${e.message}`)
       }
       throw e
     }
