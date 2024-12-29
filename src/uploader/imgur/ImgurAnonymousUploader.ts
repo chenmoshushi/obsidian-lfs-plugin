@@ -73,11 +73,14 @@ export default class ImgurAnonymousUploader implements ImageUploader {
         body: JSON.stringify(lfsInitData) 
     });
 
+    if (initResponse.status >= 400) {
+        handleImgurErrorResponse(initResponse)
+    }
 
     const reader = new FileReader();
     console.warn("initResponse", initResponse);
     try {
-        const lfsInitData = JSON.parse(initResponse);
+        const lfsInitData = initResponse.json;
         if ('actions' in lfsInitData.objects[0]) {
             const lfsUploadUrl = lfsInitData.objects[0].actions.upload.href;
             const token = lfsInitData.objects[0].actions.upload.header['lfs-batch-token'];
@@ -110,7 +113,9 @@ export default class ImgurAnonymousUploader implements ImageUploader {
                 body: await fileDataPromise
             });
             console.warn("uploadResponse", uploadResponse);
-            console.warn("uploadResponse", typeof uploadResponse);
+            if (uploadResponse.status >= 400) {
+                handleImgurErrorResponse(initResponse)
+            }
         } else {
             console.warn("no need actions");
         }
