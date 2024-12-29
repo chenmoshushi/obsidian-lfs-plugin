@@ -501,7 +501,7 @@ export default class ImgurPlugin extends Plugin {
             ImgurPlugin.replaceFirstOccurrence(this.getEditor(), progressText, markDownImage)
             const mdView = this.app.workspace.getActiveViewOfType(MarkdownView);
             if (mdView) {
-                mdView.currentMode.clipboardManager.handlePaste(new DirectFileCopy([file]));
+                mdView.currentMode.clipboardManager.handlePaste(new DirectFileCopy(file));
             }
         }
     } else {
