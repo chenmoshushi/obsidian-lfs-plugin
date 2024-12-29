@@ -30,6 +30,7 @@ export const sharedEsbuildConfig = {
     'crypto',
     'fs',
     'path',
+    'buffer'
   ],
   format: 'cjs',
   target: 'es2018',
