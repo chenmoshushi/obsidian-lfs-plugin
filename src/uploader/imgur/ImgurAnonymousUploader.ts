@@ -121,7 +121,7 @@ export default class ImgurAnonymousUploader implements ImageUploader {
   }
 }
 
-async function calculateFileOid(image): Promise<{ hash: string; size: number }> {
+async function calculateFileOid(image: File): Promise<{ hash: string; size: number }> {
     return new Promise((resolve, reject) => {
         const hash = createHash('sha256');
         let size = 0;
@@ -148,7 +148,7 @@ async function calculateFileOid(image): Promise<{ hash: string; size: number }> 
     });
 }
 
-function generateLfsPointer({ oid, size }) {
+function generateLfsPointer(oid: fileHash, size: fileSize) {
     const versionLine = `version https://git-lfs.github.com/spec/v1`;
     const oidLine = `oid sha256:${oid}`;
     const sizeLine = `size ${size}`;
