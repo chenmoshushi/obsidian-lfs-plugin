@@ -162,9 +162,9 @@ async function calculateFileOid(image: File): Promise<{ hash: string; size: numb
     });
 }
 
-function generateLfsPointer(oid: fileHash, size: fileSize) {
-    const versionLine = `version https://git-lfs.github.com/spec/v1`;
-    const oidLine = `oid sha256:${oid}`;
-    const sizeLine = `size ${size}`;
-    return `${versionLine}\n${oidLine}\n${sizeLine}`;
-}
+// function generateLfsPointer(oid: fileHash, size: fileSize) {
+//     const versionLine = `version https://git-lfs.github.com/spec/v1`;
+//     const oidLine = `oid sha256:${oid}`;
+//     const sizeLine = `size ${size}`;
+//     return `${versionLine}\n${oidLine}\n${sizeLine}`;
+// }
