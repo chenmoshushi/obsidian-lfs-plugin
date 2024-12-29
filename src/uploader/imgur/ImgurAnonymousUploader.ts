@@ -10,7 +10,6 @@ import * as fs from 'fs';
 import { createHash } from 'crypto';
 import { Buffer } from 'buffer';
 const { promises: fsp } = fs
-import { TextEncoder } from 'text-encoder';
 
 export default class ImgurAnonymousUploader implements ImageUploader {
   private readonly clientId!: string
@@ -135,8 +134,7 @@ async function calculateFileOid(image: File): Promise<{ hash: string; size: numb
                 if (this.result instanceof ArrayBuffer) {
                     buffer = new Uint8Array(this.result);
                 } else if (typeof this.result ==='string') {
-                    const encoder = new TextEncoder();
-                    buffer = encoder.encode(this.result);
+                    buffer = new Uint8Array(this.result);
                 }
                 hash.update(buffer);
                 size += buffer.byteLength;
