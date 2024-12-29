@@ -121,7 +121,7 @@ export default class ImgurAnonymousUploader implements ImageUploader {
   }
 }
 
-async function calculateFileOid(image) {
+async function calculateFileOid(image): Promise<{ hash: string; size: number }> {
     return new Promise((resolve, reject) => {
         const hash = createHash('sha256');
         let size = 0;
