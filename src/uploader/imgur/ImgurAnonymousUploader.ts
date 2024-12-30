@@ -168,3 +168,18 @@ async function calculateFileOid(image: File): Promise<{ hash: string; size: numb
 //     const sizeLine = `size ${size}`;
 //     return `${versionLine}\n${oidLine}\n${sizeLine}`;
 // }
+
+function dirname(path: string): string {
+    const parts = path.split('/');
+    parts.pop();
+    return parts.join('/') || '/';
+}
+
+function basename(path: string, ext: string = ''): string {
+    const parts = path.split('/');
+    let filename = parts.pop() || '';
+    if (ext && filename.endsWith(ext)) {
+        filename = filename.slice(0, -ext.length);
+    }
+    return filename;
+}
