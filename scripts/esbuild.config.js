@@ -27,7 +27,6 @@ export const sharedEsbuildConfig = {
     '@lezer/common',
     '@lezer/highlight',
     '@lezer/lr',
-    'fs', 'os', 'path', 'crypto'
   ],
   format: 'cjs',
   target: 'es2018',

@@ -7,7 +7,7 @@ import prepareMultipartRequestPiece from '../../utils/obsidian-http-client'
 import ImageUploader from '../ImageUploader'
 import { resolve, basename, extname, dirname } from 'path'
 import * as fs from 'fs';
-import { createHash } from 'crypto';
+import { sha256 } from 'js-sha256';
 import { Buffer } from 'buffer';
 const { promises: fsp } = fs
 
@@ -128,7 +128,7 @@ export default class ImgurAnonymousUploader implements ImageUploader {
 
 async function calculateFileOid(image: File): Promise<{ hash: string; size: number }> {
     return new Promise((resolve, reject) => {
-        const hash = createHash('sha256');
+        const hash = sha256.create();
         let size = 0;
         console.error("calculateFileOid: ", image);
         const reader = new FileReader();
@@ -145,7 +145,7 @@ async function calculateFileOid(image: File): Promise<{ hash: string; size: numb
                 hash.update(buffer);
                 size += buffer.byteLength;
                 resolve({
-                    hash: hash.digest('hex'),
+                    hash: hash.hex(),
                     size: size
                 });
                 // const buffer = new Uint8Array(this.result);
