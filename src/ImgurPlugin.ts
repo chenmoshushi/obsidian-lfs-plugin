@@ -415,7 +415,7 @@ export default class ImgurPlugin extends Plugin {
   private addUploadLocalCommand() {
     this.addCommand({
       id: 'imgur-upload-local',
-      name: 'Upload to Imgur',
+      name: 'Upload to LFS',
       editorCheckCallback: this.editorCheckCallbackForLocalUpload,
     })
   }
