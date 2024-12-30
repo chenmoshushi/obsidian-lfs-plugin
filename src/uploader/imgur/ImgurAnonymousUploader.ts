@@ -67,7 +67,7 @@ export default class ImgurAnonymousUploader implements ImageUploader {
     };
 
     const initResponse = await requestUrl({
-        url: `${this.clientId}/log_img/info/lfs/objects/batch`,
+        url: `${this.clientId}`,
         method: 'POST',
         headers: headers,
         body: JSON.stringify(lfsInitData) 

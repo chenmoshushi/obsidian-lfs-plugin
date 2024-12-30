@@ -212,7 +212,7 @@ export default class ImgurPlugin extends Plugin {
 
     menu.addItem((item) => {
       item
-        .setTitle('Upload to Imgur')
+        .setTitle('Upload to LFS')
         .setIcon('wand')
         .onClick(() => this.doUploadLocalImage({ image: localFile, editor, noteFile: view.file }))
     })
