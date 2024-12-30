@@ -117,6 +117,7 @@ export default class ImgurAnonymousUploader implements ImageUploader {
         }
     } catch (e) {
         console.error("Upload Error: ", e);
+        throw new Error(`Upload Error: ${e.message}`)
     }
     return basename(image.name);
   }
