@@ -495,6 +495,13 @@ export default class ImgurPlugin extends Plugin {
         console.warn("embedMarkDownImage--attach_file", attach_file)
         if (attach_file) {
             const markDownImage = `![[${attach_file.name}]]`
+            if (imageUrl.startsWith(attach_file.name)) {
+                markDownImage = `![[${imageUrl}]]`
+            } else {
+                const UrlParts = imageUrl.split('#');
+                UrlParts.shift()
+                markDownImage = `![[${attach_file.name}#${UrlParts.join('#')}]]`
+            }
             ImgurPlugin.replaceFirstOccurrence(this.getEditor(), progressText, markDownImage)
         } else {
             const markDownImage = ``
