@@ -212,7 +212,7 @@ export default class ImgurPlugin extends Plugin {
 
     menu.addItem((item) => {
       item
-        .setTitle('Upload to LFS')
+        .setTitle('Upload cursor file to LFS')
         .setIcon('wand')
         .onClick(() => this.doUploadLocalImage({ image: localFile, editor, noteFile: view.file }))
     })
@@ -415,7 +415,7 @@ export default class ImgurPlugin extends Plugin {
   private addUploadLocalCommand() {
     this.addCommand({
       id: 'imgur-upload-local',
-      name: 'Upload to LFS',
+      name: 'Upload local to LFS',
       editorCheckCallback: this.editorCheckCallbackForLocalUpload,
     })
   }
