@@ -34,7 +34,7 @@ export default class ImgurAnonymousUploader implements ImageUploader {
   //   return (resp.json as ImgurPostData).data.link
   // }
 
-  async download(imageURL: ImageURL): Promise<string> {
+  async download(ctx: MarkdownFileInfo, imageURL: ImageURL): Promise<string> {
     console.warn("download: ", imageURL);
     const { hash: fileHash, size: fileSize } = getURLOid(imageURL.url);
     const lfsInitData = {
@@ -97,18 +97,18 @@ export default class ImgurAnonymousUploader implements ImageUploader {
                     const hash = sha256.create();
             
                     const tempFilePath = imageURL.path + '.tmp';
-                    let tempFile = app.vault.getAbstractFileByPath(tempFilePath) as TFile;
+                    let tempFile = ctx.app.vault.getAbstractFileByPath(tempFilePath) as TFile;
             
                     if (!tempFile) {
-                        tempFile = await app.vault.create(tempFilePath, '');
+                        tempFile = await ctx.app.vault.create(tempFilePath, '');
                     } else {
-                        await app.vault.modify(tempFile, '');
+                        await ctx.app.vault.modify(tempFile, '');
                     }
             
             
                     // 处理整个 ArrayBuffer
                     hash.update(uint8Array);
-                    await app.vault.adapter.writeBinary(tempFilePath, uint8Array);
+                    await ctx.app.vault.adapter.writeBinary(tempFilePath, uint8Array);
                     totalBytes += uint8Array.length;
             
                     const calculatedHash = hash.hex();
@@ -116,10 +116,10 @@ export default class ImgurAnonymousUploader implements ImageUploader {
                         reject(new Error(`Download Hash Mismatch: ${calculatedHash} vs ${fileHash}`));
                     } else {
                         console.error("Download ok, Rename..");
-                        const attachPath = app.vault.getConfig("attachmentFolderPath")
+                        const attachPath = ctx.app.vault.getConfig("attachmentFolderPath")
                         const newPath = `${attachPath}/${dirname(imageURL.note_path)}/${basename(imageURL.note_path, 'all')}/${imageURL.path}`
                         console.error(`attachPath=${attachPath},newPath=${newPath}`);
-                        await app.fileManager.renameFile(tempFile, newPath);
+                        await ctx.app.fileManager.renameFile(tempFile, newPath);
                         resolve(newPath);
                     }
                 } catch (e) {

@@ -8,7 +8,7 @@ export default class ImgurAuthenticatedUploader implements ImageUploader {
     return (await this.client.upload(image, albumId)).data.link
   }
 
-  async download(imageURL: ImageURL): Promise<string> {
+  async download(ctx: MarkdownFileInfo, imageURL: ImageURL): Promise<string> {
     return new Promise(async (resolve, reject) => {
         reject(new Error(`Not Implement!!!`));
     });

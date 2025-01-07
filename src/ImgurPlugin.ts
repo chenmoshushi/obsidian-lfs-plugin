@@ -504,7 +504,7 @@ export default class ImgurPlugin extends Plugin {
     this.insertTemporaryText(pasteId, atPos)
     let imgFile: string
     try {
-      imgFile = await this.imgUploaderField.download(imageURL)
+      imgFile = await this.imgUploaderField.download(this, imageURL)
     } catch (e) {
       if (e instanceof ApiError) {
         this.handleFailedUpload(
