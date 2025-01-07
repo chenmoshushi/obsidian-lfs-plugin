@@ -1,4 +1,4 @@
-import { requestUrl } from 'obsidian'
+import { requestUrl, TFile, MarkdownFileInfo } from 'obsidian'
 
 import { handleImgurErrorResponse } from '../../imgur/AuthenticatedImgurClient'
 import { IMGUR_API_BASE } from '../../imgur/constants'
@@ -104,7 +104,6 @@ export default class ImgurAnonymousUploader implements ImageUploader {
                     } else {
                         await ctx.app.vault.modify(tempFile, '');
                     }
-            
             
                     // 处理整个 ArrayBuffer
                     hash.update(uint8Array);

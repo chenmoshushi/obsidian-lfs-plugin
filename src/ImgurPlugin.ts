@@ -31,6 +31,7 @@ import ImgurAuthenticatedUploader from './uploader/imgur/ImgurAuthenticatedUploa
 import { allFilesAreImages } from './utils/FileList'
 import { findLocalFileUnderCursor } from './utils/editor'
 import { fixImageTypeIfNeeded } from './utils/misc'
+import { ImageURL } from './utils/types'
 
 declare module 'obsidian' {
   interface MarkdownSubView {
