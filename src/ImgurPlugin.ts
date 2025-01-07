@@ -208,14 +208,21 @@ export default class ImgurPlugin extends Plugin {
 
   private imgurPluginRightClickHandler = (menu: Menu, editor: Editor, view: MarkdownView) => {
     const localFile = findLocalFileUnderCursor(editor, view)
-    if (!localFile) return
-
-    menu.addItem((item) => {
-      item
-        .setTitle('Upload cursor file to LFS')
-        .setIcon('wand')
-        .onClick(() => this.doUploadLocalImage({ image: localFile, editor, noteFile: view.file }))
-    })
+    if (!localFile.file) {
+      menu.addItem((item) => {
+        item
+          .setTitle('Download cursor file from LFS')
+          .setIcon('wand')
+          .onClick(() => this.editorCheckCallbackForRemoteDownload(false, editor, view))
+      })
+    } else { 
+      menu.addItem((item) => {
+        item
+          .setTitle('Upload cursor file to LFS')
+          .setIcon('wand')
+          .onClick(() => this.doUploadLocalImage({ image: localFile, editor, noteFile: view.file }))
+      })
+    }
   }
 
   private async doUploadLocalImage(imageInEditor: LocalImageInEditor) {
@@ -365,6 +372,7 @@ export default class ImgurPlugin extends Plugin {
     this.setupImgurHandlers()
     this.addResizingCommands()
     this.addUploadLocalCommand()
+    this.addDownloadLocalCommand()
   }
 
   setupImagesUploader(): void {
@@ -420,6 +428,14 @@ export default class ImgurPlugin extends Plugin {
     })
   }
 
+  private addDownloadLocalCommand() {
+    this.addCommand({
+      id: 'imgur-download-local',
+      name: 'Download LFS to local',
+      editorCheckCallback: this.editorCheckCallbackForRemoteDownload,
+    })
+  }
+
   private editorCheckCallbackForLocalUpload = (
     checking: boolean,
     editor: Editor,
@@ -430,6 +446,20 @@ export default class ImgurPlugin extends Plugin {
     if (checking) return true
 
     void this.doUploadLocalImage({ image: localFile, editor, noteFile: ctx.file })
+  }
+
+  private editorCheckCallbackForRemoteDownload = (
+    checking: boolean,
+    editor: Editor,
+    ctx: MarkdownFileInfo,
+  ) => {
+    const imageURL = findLocalFileUnderCursor(editor, ctx)
+    if (imageURL.file) return false
+    if (checking) return true
+    const imageRes = this.downloadFileAndEmbedImgurImage(imageURL, {
+      ch: 0,
+      line: imageURL.end.line + 1,
+    })
   }
 
   getAuthenticatedImgurClient(): AuthenticatedImgurClient | null {
@@ -469,6 +499,30 @@ export default class ImgurPlugin extends Plugin {
     return imgUrl
   }
 
+  private async downloadFileAndEmbedImgurImage(imageURL: ImageURL, atPos?: EditorPosition) {
+    const pasteId = (Math.random() + 1).toString(36).substring(2, 7)
+    this.insertTemporaryText(pasteId, atPos)
+    let imgFile: string
+    try {
+      imgFile = await this.imgUploaderField.download(imageURL)
+    } catch (e) {
+      if (e instanceof ApiError) {
+        this.handleFailedUpload(
+          pasteId,
+          `Upload failed, remote server returned an error: ${e.message}`,
+        )
+      } else {
+        console.error('Failed imgur request: ', e)
+        this.handleFailedUpload(pasteId, `⚠️Imgur upload failed, error: ${e.message}`)
+      }
+      throw e
+    }
+
+    const progressText = ImgurPlugin.progressTextFor(pasteId)
+    ImgurPlugin.replaceFirstOccurrence(this.getEditor(), progressText, '')
+    return imgFile
+  }
+
   private insertTemporaryText(pasteId: string, atPos?: EditorPosition) {
     const progressText = ImgurPlugin.progressTextFor(pasteId)
     const replacement = `${progressText}\n`
@@ -481,7 +535,7 @@ export default class ImgurPlugin extends Plugin {
   }
 
   private static progressTextFor(id: string) {
-    return `![Uploading file...${id}]()`
+    return `![Processing ...${id}]()`
   }
 
   private embedMarkDownImage(pasteId: string, imageUrl: string, file: File) {

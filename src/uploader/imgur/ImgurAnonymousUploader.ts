@@ -34,6 +34,108 @@ export default class ImgurAnonymousUploader implements ImageUploader {
   //   return (resp.json as ImgurPostData).data.link
   // }
 
+  async download(imageURL: ImageURL): Promise<void> {
+    console.warn("download: ", imageURL);
+    const { hash: fileHash, size: fileSize } = getURLOid(imageURL.url);
+    const lfsInitData = {
+        operation: 'download',
+        transfers: ['basic', 'ssh'],
+        objects: [
+            {
+                oid: fileHash,
+                size: fileSize,
+            }
+        ],
+        ref: { name: 'refs/heads/main' },
+        hash_algo: 'sha256'
+    };
+    const headers = {
+        'Accept': 'application/vnd.git-lfs+json',
+        'Content-Type': 'application/vnd.git-lfs+json',
+    };
+
+    const initResponse = await requestUrl({
+        url: `${this.clientId}`,
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify(lfsInitData) 
+    });
+
+    if (initResponse.status >= 400) {
+        handleImgurErrorResponse(initResponse)
+    }
+
+    console.warn("initResponse", initResponse);
+    try {
+        const lfsInitData = initResponse.json;
+        if ('actions' in lfsInitData.objects[0]) {
+            const lfsDownloadUrl = lfsInitData.objects[0].actions.download.href;
+            const token = lfsInitData.objects[0].actions.download.header['lfs-batch-token'];
+            const repo = lfsInitData.objects[0].actions.download.header['x-git-repo'];
+
+            const downloadResponse = await requestUrl({
+                url: lfsDownloadUrl,
+                method: 'GET',
+                headers: {
+                  ...headers,
+                    'lfs-batch-token': token,
+                    'x-git-repo': repo,
+                    'accept-encoding': 'gzip',
+                }
+            });
+            console.warn("downloadResponse", downloadResponse);
+            if (downloadResponse.status >= 400) {
+                handleImgurErrorResponse(downloadResponse)
+            }
+
+            return new Promise(async (resolve, reject) => {
+                try {
+                    const arrayBuffer = downloadResponse.arrayBuffer; // 直接访问 arrayBuffer 属性
+                    const uint8Array = new Uint8Array(arrayBuffer);
+            
+                    let totalBytes = 0;
+                    const hash = sha256.create();
+            
+                    const tempFilePath = imageURL.path + '.tmp';
+                    let tempFile = app.vault.getAbstractFileByPath(tempFilePath) as TFile;
+            
+                    if (!tempFile) {
+                        tempFile = await app.vault.create(tempFilePath, '');
+                    } else {
+                        await app.vault.modify(tempFile, '');
+                    }
+            
+            
+                    // 处理整个 ArrayBuffer
+                    hash.update(uint8Array);
+                    await app.vault.adapter.writeBinary(tempFilePath, uint8Array);
+                    totalBytes += uint8Array.length;
+            
+                    const calculatedHash = hash.hex();
+                    if (calculatedHash !== fileHash) {
+                        reject(new Error(`Download Hash Mismatch: ${calculatedHash} vs ${fileHash}`));
+                    } else {
+                        console.error("Download ok, Rename..");
+                        const attachPath = app.vault.getConfig("attachmentFolderPath")
+                        console.error(`attachPath ${attachPath}`);
+                        await app.fileManager.renameFile(tempFile, attachPath + '/' + dirname(imageURL.note_path) + '/' + basename(imageURL.note_path, 'all') + '/' + imageURL.path);
+                        resolve();
+                        console.error("Download ok");
+                    }
+                } catch (e) {
+                    console.error("Download error:", e);
+                    reject(new Error(`Download Error: ${e.message}`));
+                }
+            });
+        } else {
+            console.warn("no need actions");
+        }
+    } catch (e) {
+        console.error("Download Error: ", e);
+        throw new Error(`Download Error: ${e.message}`)
+    }
+  }
+
   async upload(image: File): Promise<string> {
     console.warn("upload: ", image.name);
     const { hash: fileHash, size: fileSize } = await calculateFileOid(image);
@@ -110,7 +212,7 @@ export default class ImgurAnonymousUploader implements ImageUploader {
             });
             console.warn("uploadResponse", uploadResponse);
             if (uploadResponse.status >= 400) {
-                handleImgurErrorResponse(initResponse)
+                handleImgurErrorResponse(uploadResponse)
             }
         } else {
             console.warn("no need actions");
@@ -163,6 +265,28 @@ async function calculateFileOid(image: File): Promise<{ hash: string; size: numb
     });
 }
 
+// `${basename(image.name)}#lfs=${fileHash}^${fileSize}`;
+function getURLOid(imageURL: string): { hash: string; size: number } {
+    const parts = imageURL.split('#');
+    const lfsString = parts.pop() || '';
+    if (lfsString) {
+        const queryParams = lfsString.split('&');
+        const lfsParam = queryParams.find(param => param.startsWith('lfs='));
+        if (lfsParam) {
+            const lfsData = lfsParam.substring(4); // Remove 'lfs='
+            const [hash, sizeStr] = lfsData.split('^');
+
+            if (hash && sizeStr) {
+                const size = parseInt(sizeStr, 10);
+                if (!isNaN(size)) {
+                    return { hash, size };
+                }
+            }
+        }
+    }
+    throw new Error(`Invalid LFS URL: ${imageURL}`)
+}
+
 // function generateLfsPointer(oid: fileHash, size: fileSize) {
 //     const versionLine = `version https://git-lfs.github.com/spec/v1`;
 //     const oidLine = `oid sha256:${oid}`;
@@ -177,10 +301,14 @@ function dirname(path: string): string {
 }
 
 function basename(path: string, ext: string = ''): string {
-    const parts = path.split('/');
-    let filename = parts.pop() || '';
+    const parts1 = path.split('/');
+    let filename = parts1.pop() || '';
     if (ext && filename.endsWith(ext)) {
         filename = filename.slice(0, -ext.length);
+    } else if (ext == 'all' && filename.indexOf('.')>-1) {
+        const parts2 = filename.split('.');
+        parts2.pop();
+        filename = parts2.join('.');
     }
     return filename;
 }

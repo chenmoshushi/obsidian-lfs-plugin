@@ -26,12 +26,22 @@ export const findLocalFileUnderCursor = (editor: Editor, ctx: MarkdownFileInfo) 
 
   const lt = parseLinktext(clickable.text)
   const file = ctx.app.metadataCache.getFirstLinkpathDest(lt.path, ctx.file.path)
+  if (!file) {
+      return {
+        file: null,
+        url: clickable.text,
+        path: lt.path,
+        note_path: ctx.file.path,
+        start: localImageExpectedStart,
+        end: localImageExpectedEnd,
+      }
+  }
 
   if (!IMGUR_POTENTIALLY_SUPPORTED_FILES_EXTENSIONS.includes(file.extension)) return null
 
   console.warn("file-->", file)
   return {
-    file,
+    file: file,
     start: localImageExpectedStart,
     end: localImageExpectedEnd,
   }
