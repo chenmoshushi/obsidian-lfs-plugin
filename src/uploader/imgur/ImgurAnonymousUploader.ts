@@ -6,6 +6,7 @@ import { ImgurPostData } from '../../imgur/imgurResponseTypes'
 import prepareMultipartRequestPiece from '../../utils/obsidian-http-client'
 import ImageUploader from '../ImageUploader'
 import { sha256 } from 'js-sha256';
+import { ImageURL } from '../../utils/types'
 
 export default class ImgurAnonymousUploader implements ImageUploader {
   private readonly clientId!: string
