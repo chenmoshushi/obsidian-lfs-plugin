@@ -34,7 +34,7 @@ export default class ImgurAnonymousUploader implements ImageUploader {
   //   return (resp.json as ImgurPostData).data.link
   // }
 
-  async download(imageURL: ImageURL): Promise<void> {
+  async download(imageURL: ImageURL): Promise<string> {
     console.warn("download: ", imageURL);
     const { hash: fileHash, size: fileSize } = getURLOid(imageURL.url);
     const lfsInitData = {
@@ -117,10 +117,10 @@ export default class ImgurAnonymousUploader implements ImageUploader {
                     } else {
                         console.error("Download ok, Rename..");
                         const attachPath = app.vault.getConfig("attachmentFolderPath")
-                        console.error(`attachPath ${attachPath}`);
-                        await app.fileManager.renameFile(tempFile, attachPath + '/' + dirname(imageURL.note_path) + '/' + basename(imageURL.note_path, 'all') + '/' + imageURL.path);
-                        resolve();
-                        console.error("Download ok");
+                        const newPath = `${attachPath}/${dirname(imageURL.note_path)}/${basename(imageURL.note_path, 'all')}/${imageURL.path}`
+                        console.error(`attachPath=${attachPath},newPath=${newPath}`);
+                        await app.fileManager.renameFile(tempFile, newPath);
+                        resolve(newPath);
                     }
                 } catch (e) {
                     console.error("Download error:", e);
