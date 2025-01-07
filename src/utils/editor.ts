@@ -42,6 +42,8 @@ export const findLocalFileUnderCursor = (editor: Editor, ctx: MarkdownFileInfo) 
   console.warn("file-->", file)
   return {
     file: file,
+    path: lt.path,
+    note_path: ctx.file.path,
     start: localImageExpectedStart,
     end: localImageExpectedEnd,
   }
