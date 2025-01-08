@@ -1,5 +1,7 @@
 import AuthenticatedImgurClient from '../../imgur/AuthenticatedImgurClient'
 import ImageUploader from '../ImageUploader'
+import { MarkdownFileInfo } from 'obsidian'
+import { ImageURL } from '../../utils/types'
 
 export default class ImgurAuthenticatedUploader implements ImageUploader {
   constructor(readonly client: AuthenticatedImgurClient) {}
