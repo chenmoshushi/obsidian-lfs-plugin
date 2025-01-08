@@ -120,16 +120,13 @@ export default class ImgurAnonymousUploader implements ImageUploader {
                         const newDir = `${attachPath}/${dirname(imageURL.note_path)}/${basename(imageURL.note_path, 'all')}`
                         const newPath = `${newDir}/${imageURL.path}`
                         console.error(`newPath=${newPath}`);
-                        ctx.app.vault.adapter.exists(newDir, true)
-                            .then(async (exists) => {
-                              if (!exists) {
-                                  await ctx.app.vault.adapter.mkdir(newDir);
-                              }
-                            })
-                            .finally(() => {
-                                await ctx.app.fileManager.renameFile(tempFile, newPath);
-                                resolve(newPath);
-                            });
+
+                        const exists = await ctx.app.vault.adapter.exists(newDir, true);
+                        if (!exists) {
+                            await ctx.app.vault.adapter.mkdir(newDir);
+                        }
+                        await ctx.app.fileManager.renameFile(tempFile, newPath);
+                        resolve(newPath);
                     }
                 } catch (e) {
                     console.error("Download error:", e);
