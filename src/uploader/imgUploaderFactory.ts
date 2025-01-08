@@ -5,7 +5,7 @@ import { IMGUR_ACCESS_TOKEN_LOCALSTORAGE_KEY } from '../imgur/constants'
 import ImageUploader from './ImageUploader'
 import ImgurAnonymousUploader from './imgur/ImgurAnonymousUploader'
 import ImgurAuthenticatedUploader from './imgur/ImgurAuthenticatedUploader'
-import { ImageURL } from './utils/types'
+import { ImageURL } from '../utils/types'
 
 export default function buildUploaderFrom(
   settings: ImgurPluginSettings,
