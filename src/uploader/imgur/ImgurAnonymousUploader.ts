@@ -117,10 +117,19 @@ export default class ImgurAnonymousUploader implements ImageUploader {
                         reject(new Error(`Download Hash Mismatch: ${calculatedHash} vs ${fileHash}`));
                     } else {
                         console.error("Download ok, Rename..");
-                        const newPath = `${attachPath}/${dirname(imageURL.note_path)}/${basename(imageURL.note_path, 'all')}/${imageURL.path}`
+                        const newDir = `${attachPath}/${dirname(imageURL.note_path)}/${basename(imageURL.note_path, 'all')}`
+                        const newPath = `${newDir}/${imageURL.path}`
                         console.error(`newPath=${newPath}`);
-                        await ctx.app.fileManager.renameFile(tempFile, newPath);
-                        resolve(newPath);
+                        ctx.app.vault.adapter.exists(newDir, true)
+                            .then(async (exists) => {
+                              if (!exists) {
+                                  await ctx.app.vault.adapter.mkdir(newDir);
+                              }
+                            })
+                            .finally(() => {
+                                await ctx.app.fileManager.renameFile(tempFile, newPath);
+                                resolve(newPath);
+                            });
                     }
                 } catch (e) {
                     console.error("Download error:", e);
