@@ -2,6 +2,8 @@ import { ClickableToken, Editor, EditorPosition, MarkdownFileInfo, parseLinktext
 
 import { IMGUR_POTENTIALLY_SUPPORTED_FILES_EXTENSIONS } from '../imgur/constants'
 
+import { ImageURL } from './types'
+
 function localEmbeddedImageExpectedBoundaries(
   from: ClickableToken,
 ): [EditorPosition, EditorPosition] {
@@ -34,7 +36,7 @@ export const findLocalFileUnderCursor = (editor: Editor, ctx: MarkdownFileInfo) 
         note_path: ctx.file.path,
         start: localImageExpectedStart,
         end: localImageExpectedEnd,
-      }
+      } as ImageURL;
   }
 
   if (!IMGUR_POTENTIALLY_SUPPORTED_FILES_EXTENSIONS.includes(file.extension)) return null
@@ -46,5 +48,5 @@ export const findLocalFileUnderCursor = (editor: Editor, ctx: MarkdownFileInfo) 
     note_path: ctx.file.path,
     start: localImageExpectedStart,
     end: localImageExpectedEnd,
-  }
+  } as ImageURL;
 }
