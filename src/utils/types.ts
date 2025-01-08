@@ -1,8 +1,8 @@
 import {
   EditorPosition,
   MarkdownFileInfo,
+  TFile
 } from 'obsidian'
-import { ImageURL } from './utils/types'
 
 export interface ImageURL {
   file: TFile | null;
