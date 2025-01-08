@@ -116,7 +116,7 @@ export default class ImgurAnonymousUploader implements ImageUploader {
                         reject(new Error(`Download Hash Mismatch: ${calculatedHash} vs ${fileHash}`));
                     } else {
                         console.error("Download ok, Rename..");
-                        const attachPath = ctx.app.vault.getConfig("attachmentFolderPath")
+                        const attachPath = (ctx.app.vault as any).getConfig("attachmentFolderPath")
                         const newPath = `${attachPath}/${dirname(imageURL.note_path)}/${basename(imageURL.note_path, 'all')}/${imageURL.path}`
                         console.error(`attachPath=${attachPath},newPath=${newPath}`);
                         await ctx.app.fileManager.renameFile(tempFile, newPath);
