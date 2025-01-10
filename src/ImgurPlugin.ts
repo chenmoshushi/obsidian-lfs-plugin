@@ -75,11 +75,7 @@ const DEFAULT_SETTINGS: ImgurPluginSettings = {
 }
 
 interface LocalImageInEditor {
-  image: {
-    file: TFile
-    start: EditorPosition
-    end: EditorPosition
-  }
+  image: ImageURL
   editor: Editor
   noteFile: TFile
 }
@@ -228,8 +224,8 @@ export default class ImgurPlugin extends Plugin {
 
   private async doUploadLocalImage(imageInEditor: LocalImageInEditor) {
     const { image, editor, noteFile } = imageInEditor
-    const { file: imageFile, start, end } = image
-    const imageUrl = await this.uploadLocalImageFromEditor(editor, imageFile, start, end)
+    const { file: imageFile, start, end, notePath} = image
+    const imageUrl = await this.uploadLocalImageFromEditor(editor, imageFile, start, end, notePath)
     console.warn("upload ok imageUrl:", imageUrl)
     console.warn("upload ok imageFile:", imageFile)
     this.proposeToReplaceOtherLocalLinksIfAny(imageFile, imageUrl, {
@@ -333,6 +329,7 @@ export default class ImgurPlugin extends Plugin {
     file: TFile,
     start: EditorPosition,
     end: EditorPosition,
+    notePath: string,
   ) {
     console.warn('uploadLocalImageFromEditor 1')
     const arrayBuffer = await this.app.vault.readBinary(file)
@@ -341,7 +338,7 @@ export default class ImgurPlugin extends Plugin {
     const imageUrl = await this.uploadFileAndEmbedImgurImage(fileToUpload, {
       ch: 0,
       line: end.line + 1,
-    })
+    }, notePath)
     editor.replaceRange(`<!--${editor.getRange(start, end)}-->`, start, end)
     return imageUrl
   }
@@ -476,14 +473,14 @@ export default class ImgurPlugin extends Plugin {
     new Notice('⚠️ Please configure Client ID for Imgur plugin or disable it', fiveSecondsMillis)
   }
 
-  private async uploadFileAndEmbedImgurImage(file: File, atPos?: EditorPosition) {
+  private async uploadFileAndEmbedImgurImage(file: File, atPos?: EditorPosition, notePath?: string) {
     const pasteId = (Math.random() + 1).toString(36).substring(2, 7)
     this.insertTemporaryText(pasteId, atPos)
 
     let imgUrl: string
     try {
       console.warn('imgUploaderField.upload', file)
-      imgUrl = await this.imgUploaderField.upload(file, this.settings.albumToUpload)
+      imgUrl = await this.imgUploaderField.upload(file, notePath, this.settings.albumToUpload)
     } catch (e) {
       if (e instanceof ApiError) {
         this.handleFailedUpload(

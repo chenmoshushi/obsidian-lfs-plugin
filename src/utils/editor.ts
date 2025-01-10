@@ -33,7 +33,7 @@ export const findLocalFileUnderCursor = (editor: Editor, ctx: MarkdownFileInfo) 
         file: null,
         url: clickable.text,
         path: lt.path,
-        note_path: ctx.file.path,
+        notePath: ctx.file.path,
         start: localImageExpectedStart,
         end: localImageExpectedEnd,
       } as ImageURL;
@@ -45,7 +45,7 @@ export const findLocalFileUnderCursor = (editor: Editor, ctx: MarkdownFileInfo) 
   return {
     file: file,
     path: lt.path,
-    note_path: ctx.file.path,
+    notePath: ctx.file.path,
     start: localImageExpectedStart,
     end: localImageExpectedEnd,
   } as ImageURL;

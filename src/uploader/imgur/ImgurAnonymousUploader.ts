@@ -117,7 +117,7 @@ export default class ImgurAnonymousUploader implements ImageUploader {
                         reject(new Error(`Download Hash Mismatch: ${calculatedHash} vs ${fileHash}`));
                     } else {
                         console.error("Download ok, Rename..");
-                        const newDir = `${attachPath}/${dirname(imageURL.note_path)}/${basename(imageURL.note_path, 'all')}`
+                        const newDir = `${attachPath}/${dirname(imageURL.notePath)}/${basename(imageURL.notePath, 'all')}`
                         const newPath = `${newDir}/${imageURL.path}`
                         console.error(`newPath=${newPath}`);
 
@@ -142,7 +142,7 @@ export default class ImgurAnonymousUploader implements ImageUploader {
     }
   }
 
-  async upload(image: File): Promise<string> {
+  async upload(image: File, notePath?: string, albumId?: string): Promise<string> {
     console.warn("upload: ", image.name);
     const { hash: fileHash, size: fileSize } = await calculateFileOid(image);
 
@@ -151,7 +151,10 @@ export default class ImgurAnonymousUploader implements ImageUploader {
     // await fsp.mkdir(dirname(lfsPointerFilePath), { recursive: true });
     // await fsp.writeFile(lfsPointerFilePath, lfsPointerContent);
     // console.warn("lfsPointerFilePath", lfsPointerFilePath);
-
+    const newPath = notePath !== undefined
+            ? `${dirname(notePath)}/${basename(notePath, 'all')}/${image.name}`
+            : `${image.name}`;
+    console.warn("newPath", newPath);
     const lfsInitData = {
         operation: 'upload',
         transfers: ['basic', 'ssh'],
@@ -159,7 +162,7 @@ export default class ImgurAnonymousUploader implements ImageUploader {
             {
                 oid: fileHash,
                 size: fileSize,
-                file_path: image.name
+                file_path: newPath
             }
         ],
         ref: { name: 'refs/heads/main' },
@@ -212,7 +215,7 @@ export default class ImgurAnonymousUploader implements ImageUploader {
                     'x-git-repo': repo,
                     'accept-encoding': 'gzip',
                     'Content-Type': 'application/octet-stream',
-                    'x-file-path': image.name
+                    'x-file-path': newPath
                 },
                 body: await fileDataPromise
             });
