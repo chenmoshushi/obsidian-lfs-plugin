@@ -339,7 +339,7 @@ export default class ImgurPlugin extends Plugin {
       ch: 0,
       line: end.line + 1,
     }, notePath)
-    editor.replaceRange(`<!--${editor.getRange(start, end)}-->`, start, end)
+    editor.replaceRange(`<!--${editor.getRange(start, end).replace(/!?\[\[(.*?)\]\]/g, "$1")}-->`, start, end)
     return imageUrl
   }
 
